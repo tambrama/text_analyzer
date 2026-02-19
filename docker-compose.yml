@@ -1,0 +1,26 @@
+version: "3.9"
+
+services:
+  analyzer:
+    build:
+      context: .
+      dockerfile: build/analyzer/Dockerfile
+    container_name: text-analyzer
+    environment:
+      - SERVER_PORT=:8080
+    ports:
+      - "8082:8080"
+
+  receiver:
+    build:
+      context: .
+      dockerfile: build/receiver/Dockerfile
+    container_name: text-receiver
+    environment:
+      - SERVER_PORT=:8080
+      - ANALYZER_URL=http://analyzer:8080
+    ports:
+      - "8081:8080"
+    depends_on:
+      - analyzer
+
