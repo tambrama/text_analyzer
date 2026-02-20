@@ -79,7 +79,7 @@ Analyzer: **http://localhost:8082**
 
 Swagger UI: **http://localhost:8081/swagger/index.html**
 
-1. Остановка:
+2. Остановка:
 Нажми **Ctrl+C** или выполни в новом окне: ```docker compose down```.
 
 **💻 Способ Б: Локальный запуск (без Docker)**
