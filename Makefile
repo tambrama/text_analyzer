@@ -1,7 +1,7 @@
-CMD_A = cmd/service-a
-CMD_B = cmd/service-b
+CMD_A = cmd/receiver
+CMD_B = cmd/analyzer
 BUILD_DIR = build
-BIN_A = $(BUILD_DIR)/service-a
+BIN_A = $(BUILD_DIR)/receiver
 BIN_B = $(BUILD_DIR)/service-b
 
 DOCKER_FILE = docker-compose.yml

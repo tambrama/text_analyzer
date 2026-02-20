@@ -3,8 +3,11 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	_ "text_analyzer/docs"
 	"text_analyzer/internal/analyzer/service"
 	"text_analyzer/internal/common"
+
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 type AnalyzerHandler struct {
@@ -19,6 +22,9 @@ func (h *AnalyzerHandler) Router() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/v1/analyze", h.handleAnalyze)
 	mux.HandleFunc("/api/v1/health", h.handleHealth)
+
+	mux.HandleFunc("/swagger/", httpSwagger.WrapHandler)
+
 	return mux
 }
 
@@ -30,8 +36,8 @@ func (h *AnalyzerHandler) Router() http.Handler {
 // @Produce      json
 // @Param        request  body      common.AnalyzeRequest  true  "Объект запроса с полем 'text'"
 // @Success      200      {object}  common.TextStats       "Статистика текста"
-// @Failure      400      {object}  ErrorResponse          "Некорректный JSON или пустой текст"
-// @Failure      500      {object}  ErrorResponse          "Внутренняя ошибка сервера при анализе"
+// @Failure      400      {string}  string                 "Некорректный JSON или пустой текст"
+// @Failure      500      {string}  string                 "Внутренняя ошибка сервера при анализе"
 // @Router       /api/v1/analyze [post]
 func (h *AnalyzerHandler) handleAnalyze(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -57,7 +63,7 @@ func (h *AnalyzerHandler) handleAnalyze(w http.ResponseWriter, r *http.Request) 
 // @Tags         system
 // @Accept       json
 // @Produce      json
-// @Success      200  {object}  HealthResponse "Сервис доступен"
+// @Success      200  {object}  map[string]string "Сервис доступен"
 // @Router       /api/v1/health [get]
 func (h *AnalyzerHandler) handleHealth(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {

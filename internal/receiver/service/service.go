@@ -58,7 +58,7 @@ func (u *receiverService) SubmitText(ctx context.Context, text string) (string, 
 	task := model.Text{
 		ID:     id,
 		Text:   text,
-		Status: model.StatusPending,
+		Status: string(model.StatusPending),
 	}
 
 	if err := u.repo.Save(ctx, task); err != nil {
@@ -72,10 +72,10 @@ func (u *receiverService) SubmitText(ctx context.Context, text string) (string, 
 
 // runAnalysis запускает анализ текста с таймаутом
 func (u *receiverService) runAnalysis(ctx context.Context, id string, text model.Text) {
-	//таймаут на анализ 
+	//таймаут на анализ
 	ctx, cancel := context.WithTimeout(ctx, u.analysisTimeout)
 	defer cancel()
-	
+
 	stats, err := u.analyzer.Analyze(ctx, text.Text)
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
@@ -92,6 +92,7 @@ func (u *receiverService) runAnalysis(ctx context.Context, id string, text model
 		u.logger.Printf("update result error: %v", err)
 	}
 }
+
 // markFailed обновляет статус на "провал"
 func (u *receiverService) markFailed(id, msg string, status model.WorkStatus) {
 	ctx := context.Background()
@@ -100,13 +101,14 @@ func (u *receiverService) markFailed(id, msg string, status model.WorkStatus) {
 		u.logger.Printf("failed to get task", "id", id, "err", err)
 		return
 	}
-	tr.Status = status
+	tr.Status = string(status)
 	tr.Error = msg
-	 if err := u.repo.Update(ctx, tr); err != nil {
-        u.logger.Printf("failed to update task", "id", id, "err", err)
+	if err := u.repo.Update(ctx, tr); err != nil {
+		u.logger.Printf("failed to update task", "id", id, "err", err)
 		return
-    }
+	}
 }
+
 // updateWithResult обновляет результат
 func (u *receiverService) updateWithResult(id string, stats common.TextStats) error {
 	ctx := context.Background()
@@ -115,7 +117,7 @@ func (u *receiverService) updateWithResult(id string, stats common.TextStats) er
 		u.logger.Printf("failed to get task", "id", id, "err", err)
 		return err
 	}
-	tr.Status = model.StatusDone
+	tr.Status = string(model.StatusDone)
 	tr.Result = &stats
 	return u.repo.Update(ctx, tr)
 }

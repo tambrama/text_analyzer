@@ -12,7 +12,7 @@ func NewApp(lc fx.Lifecycle, server *server.Server, logger *log.Logger) {
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			go func() {
-				if err := server.Start; err != nil {
+				if err := server.Start(); err != nil {
 					logger.Fatalf("Server failed to start: %v", err)
 				}
 			}()

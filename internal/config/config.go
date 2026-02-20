@@ -23,8 +23,8 @@ func NewConfig() *Config {
 	}
 
 	return &Config{
-		ServerPort:      getEnv("SERVER_PORT", "8080"),
-		AnalyzerURL:     getEnv("ANALYZER_URL", "8081"),
+		ServerPort:      getEnv("SERVER_PORT", ":8080"),
+		AnalyzerURL:     getEnv("ANALYZER_URL", ":8081"),
 		AnalysisTimeout: timeout,
 	}
 }

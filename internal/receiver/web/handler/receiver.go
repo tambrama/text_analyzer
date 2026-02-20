@@ -6,8 +6,12 @@ import (
 	"net/http"
 	"strings"
 
+	_ "text_analyzer/docs"
+	"text_analyzer/internal/common"
 	"text_analyzer/internal/receiver/model"
 	"text_analyzer/internal/receiver/service"
+
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 type ReceiverHandler struct {
@@ -27,6 +31,9 @@ func (h *ReceiverHandler) Router() http.Handler {
 	mux.HandleFunc("/api/v1/text", h.handleSubmitText)
 	mux.HandleFunc("/api/v1/status/", h.handleGetStatus)
 	mux.HandleFunc("/api/v1/health", h.handleHealth)
+
+	mux.HandleFunc("/swagger/", httpSwagger.WrapHandler)
+
 	return mux
 }
 
@@ -36,10 +43,10 @@ func (h *ReceiverHandler) Router() http.Handler {
 // @Tags         receiver
 // @Accept       json
 // @Produce      json
-// @Param        request  body      TextRequest  true  "Объект запроса, содержащий поле 'text'"
-// @Success      202      {object}  SubmitResponse  "Задача принята в обработку. Поле 'id' содержит идентификатор для проверки статуса."
-// @Failure      400      {object}  ErrorResponse   "Некорректный JSON или пустой текст"
-// @Failure      500      {object}  ErrorResponse   "Внутренняя ошибка сервера при создании задачи"
+// @Param        request  body      common.AnalyzeRequest  true  "Объект запроса, содержащий поле 'text'"
+// @Failure      400  {string}  string               "Некорректный или пустой ID"
+// @Failure      404  {string}  string               "Задача с указанным ID не найдена"
+// @Failure      500  {string}  string               "Внутренняя ошибка сервера"
 // @Router       /api/v1/text [post]
 func (h *ReceiverHandler) handleSubmitText(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -47,14 +54,14 @@ func (h *ReceiverHandler) handleSubmitText(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	var req string
+	var req common.AnalyzeRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.logger.Printf("submit decode error: %v", err)
 		http.Error(w, "invalid JSON", http.StatusBadRequest)
 		return
 	}
 
-	resp, err := h.service.SubmitText(r.Context(), req)
+	id, err := h.service.SubmitText(r.Context(), req.Text)
 	if err != nil {
 		if err == model.ErrValidation {
 			http.Error(w, "text is required", http.StatusBadRequest)
@@ -64,6 +71,7 @@ func (h *ReceiverHandler) handleSubmitText(w http.ResponseWriter, r *http.Reques
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
+	resp := model.SubmitResponse{ID: id}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusAccepted)
@@ -77,10 +85,10 @@ func (h *ReceiverHandler) handleSubmitText(w http.ResponseWriter, r *http.Reques
 // @Accept       json
 // @Produce      json
 // @Param        id   path      string  true  "Уникальный идентификатор задачи (UUID)"
-// @Success      200  {object}  model.TextRequest "Объект задачи со статусом и результатами"
-// @Failure      400  {object}  ErrorResponse   "Некорректный или пустой ID"
-// @Failure      404  {object}  ErrorResponse   "Задача с указанным ID не найдена"
-// @Failure      500  {object}  ErrorResponse   "Внутренняя ошибка сервера"
+// @Success      200  {object}  model.Text "Объект задачи со статусом и результатами"
+// @Failure      400  {string}  string               "Некорректный или пустой ID"
+// @Failure      404  {string}  string               "Задача с указанным ID не найдена"
+// @Failure      500  {string}  string               "Внутренняя ошибка сервера"
 // @Router       /api/v1/status/{id} [get]
 func (h *ReceiverHandler) handleGetStatus(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
@@ -95,7 +103,7 @@ func (h *ReceiverHandler) handleGetStatus(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	tr, err := h.service.GetStatus(r.Context(), id)
+	status, err := h.service.GetStatus(r.Context(), id)
 	if err != nil {
 		if err == model.ErrNotFound {
 			http.NotFound(w, r)
@@ -107,7 +115,7 @@ func (h *ReceiverHandler) handleGetStatus(w http.ResponseWriter, r *http.Request
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(tr)
+	_ = json.NewEncoder(w).Encode(status)
 }
 
 // handleHealth godoc
@@ -116,7 +124,7 @@ func (h *ReceiverHandler) handleGetStatus(w http.ResponseWriter, r *http.Request
 // @Tags         system
 // @Accept       json
 // @Produce      json
-// @Success      200  {object}  HealthResponse "Сервис доступен"
+// @Success      200  {object}  string "Сервис доступен"
 // @Router       /api/v1/health [get]
 func (h *ReceiverHandler) handleHealth(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {

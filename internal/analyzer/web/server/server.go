@@ -26,7 +26,7 @@ func (s *Server) Start() error {
 	middleware := middleware.Logging(mux)
 
 	s.server = &http.Server{
-		Addr:         ":" + s.cfg.ServerPort,
+		Addr:         s.cfg.ServerPort,
 		Handler:      middleware,
 		ReadTimeout:  15 * time.Second,
 		WriteTimeout: 15 * time.Second,

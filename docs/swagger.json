@@ -1,0 +1,272 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Микросервис для анализа текста: подсчет слов, символов, предложений и средней длины слова.\nЭтот сервис используется внутренне сервисом Receiver, но также предоставляет прямой API для отладки.",
+        "title": "Text Analyzer API (Analyzer Service)",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:8082",
+    "basePath": "/api/v1",
+    "paths": {
+        "/api/v1/analyze": {
+            "post": {
+                "description": "Принимает текст, подсчитывает статистику (слова, символы, предложения) и возвращает результат немедленно.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "analyzer"
+                ],
+                "summary": "Анализировать текст",
+                "parameters": [
+                    {
+                        "description": "Объект запроса с полем 'text'",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/text_analyzer_internal_common.AnalyzeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Статистика текста",
+                        "schema": {
+                            "$ref": "#/definitions/text_analyzer_internal_common.TextStats"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный JSON или пустой текст",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера при анализе",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/health": {
+            "get": {
+                "description": "Эндпоинт для мониторинга доступности сервиса. Возвращает статус \"ok\", если сервис работает корректно.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "system"
+                ],
+                "summary": "Проверка здоровья сервиса (Health Check)",
+                "responses": {
+                    "200": {
+                        "description": "Сервис доступен",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/status/{id}": {
+            "get": {
+                "description": "Возвращает текущий статус обработки текста и результаты анализа, если задача завершена.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "receiver"
+                ],
+                "summary": "Получить статус задачи анализа",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Уникальный идентификатор задачи (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Объект задачи со статусом и результатами",
+                        "schema": {
+                            "$ref": "#/definitions/text_analyzer_internal_receiver_model.Text"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный или пустой ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Задача с указанным ID не найдена",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/text": {
+            "post": {
+                "description": "Принимает текстовую строку, инициирует процесс анализа в фоновом режиме и возвращает уникальный ID задачи.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "receiver"
+                ],
+                "summary": "Отправить текст на анализ",
+                "parameters": [
+                    {
+                        "description": "Объект запроса, содержащий поле 'text'",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/text_analyzer_internal_common.AnalyzeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "400": {
+                        "description": "Некорректный или пустой ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Задача с указанным ID не найдена",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "common.TextStats": {
+            "description": "Статистические данные о тексте: количество слов, символов, предложений и средняя длина слова",
+            "type": "object",
+            "properties": {
+                "average_word_length": {
+                    "type": "number",
+                    "example": 4.5
+                },
+                "characters_count": {
+                    "type": "integer",
+                    "example": 55
+                },
+                "sentences_count": {
+                    "type": "integer",
+                    "example": 2
+                },
+                "words_count": {
+                    "type": "integer",
+                    "example": 10
+                }
+            }
+        },
+        "text_analyzer_internal_common.AnalyzeRequest": {
+            "description": "Содержит текстовую строку для подсчета статистики (слова, символы, предложения)",
+            "type": "object",
+            "required": [
+                "text"
+            ],
+            "properties": {
+                "text": {
+                    "type": "string",
+                    "minLength": 1,
+                    "example": "Hello world! This is a sample text for analysis."
+                }
+            }
+        },
+        "text_analyzer_internal_common.TextStats": {
+            "description": "Статистические данные о тексте: количество слов, символов, предложений и средняя длина слова",
+            "type": "object",
+            "properties": {
+                "average_word_length": {
+                    "type": "number",
+                    "example": 4.5
+                },
+                "characters_count": {
+                    "type": "integer",
+                    "example": 55
+                },
+                "sentences_count": {
+                    "type": "integer",
+                    "example": 2
+                },
+                "words_count": {
+                    "type": "integer",
+                    "example": 10
+                }
+            }
+        },
+        "text_analyzer_internal_receiver_model.Text": {
+            "description": "Основная сущность, содержащая исходный текст, текущий статус и результаты статистики",
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string",
+                    "example": "2026-02-19T10:00:00Z"
+                },
+                "error": {
+                    "type": "string",
+                    "example": "context deadline exceeded"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "result": {
+                    "$ref": "#/definitions/common.TextStats"
+                },
+                "status": {
+                    "description": "@Enum PENDING,DONE,FAILED,TIMEOUT",
+                    "type": "string",
+                    "example": "DONE"
+                },
+                "text": {
+                    "type": "string",
+                    "example": "Hello world! This is a test sentence."
+                },
+                "updated_at": {
+                    "type": "string",
+                    "example": "2026-02-19T10:00:05Z"
+                }
+            }
+        }
+    }
+}
