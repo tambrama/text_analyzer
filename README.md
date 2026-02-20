@@ -77,6 +77,7 @@ Receiver: **http://localhost:8081**
 Analyzer: **http://localhost:8082**
 
 Swagger UI: **http://localhost:8081/swagger/index.html**
+
 3. Остановка:
 Нажми **Ctrl+C** или выполни в новом окне: ```docker compose down```.
 
@@ -221,7 +222,7 @@ curl "http://localhost:8081/api/v1/health"
 ## 🏗 Архитектура
 
 ### Технологии
-- **Язык**: Go 1.22+
+- **Язык**: Go 1.25+
 - **Фреймворк**: Uber FX (Dependency Injection, Lifecycle hooks)
 - **Хранение**: In-Memory (map + mutex)
 - **Контейнеризация**: Docker, Docker Compose
@@ -241,10 +242,10 @@ curl "http://localhost:8081/api/v1/health"
 - `GET /api/v1/health` — проверка здоровья.
 - `GET /swagger/index.html` — Swagger UI.
 
-- **Взаимодействие**:
-  - Сервис A вызывает `POST analyzer/api/v1/analyze` с JSON `{id, text}`.
-  - Сервис B возвращает JSON со статистикой.
-  - Сервис A сохраняет результат и делает его доступным по `GET /api/v1/status/{id}`.
+**Взаимодействие**:
+- Сервис A вызывает `POST analyzer/api/v1/analyze` с JSON `{id, text}`.
+- Сервис B возвращает JSON со статистикой.
+- Сервис A сохраняет результат и делает его доступным по `GET /api/v1/status/{id}`.
 
 ## 🗂️ Структура проекта
 
@@ -257,7 +258,7 @@ text_analyzer/
 │   ├── receiver/          # Dockerfile Сервиса А
 │   └── analyzer/          # Dockerfile Сервиса Б
 ├── internal/
-│   ├── common/            # Общие DTO
+│   ├── common/            # Общие объекты
 │   ├── config/            # Конфигурация
 │   ├── middleware/        # Middleware
 │   ├── receiver/          # Логика Сервиса А
