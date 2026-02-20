@@ -72,13 +72,14 @@ go get github.com/stretchr/testify
 docker compose up --build
 ```
 1. Доступ к сервисам:
+  
 Receiver: **http://localhost:8081**
 
 Analyzer: **http://localhost:8082**
 
 Swagger UI: **http://localhost:8081/swagger/index.html**
 
-3. Остановка:
+1. Остановка:
 Нажми **Ctrl+C** или выполни в новом окне: ```docker compose down```.
 
 **💻 Способ Б: Локальный запуск (без Docker)**
@@ -135,7 +136,7 @@ make docker-up
 Проект покрыт интеграционными тестами, проверяющими полный цикл работы (от приема текста до получения результата).
 
 ```
-go test -v -tags=integration ./tests
+go test -v -tags=integration ./test
 ```
 Ожидаемый результат:
 ```
