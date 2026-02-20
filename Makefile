@@ -6,7 +6,7 @@ BIN_B = $(BUILD_DIR)/service-b
 
 DOCKER_FILE = docker-compose.yml
 
-.PHONY: all build run clean fmt mod docker-up docker-down docker-rebuild docker-logs docs
+.PHONY: all build run clean fmt mod docker-up docker-down docker-rebuild docker-logs docs test
 
 all: docker-up
 
@@ -49,3 +49,6 @@ docker-logs:
 docs:
 	swag init --parseDependency --parseInternal --generalInfo $(CMD_A)/main.go --output ./docs
 	swag init --parseDependency --parseInternal --generalInfo $(CMD_B)/main.go --output ./docs
+
+test:
+	go test -v -tags=integration ./test
