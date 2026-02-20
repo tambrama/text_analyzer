@@ -73,7 +73,9 @@ docker compose up --build
 ```
 1. Доступ к сервисам:
 Receiver: **http://localhost:8081**
+
 Analyzer: **http://localhost:8082**
+
 Swagger UI: **http://localhost:8081/swagger/index.html**
 3. Остановка:
 Нажми **Ctrl+C** или выполни в новом окне: ```docker compose down```.
@@ -139,7 +141,7 @@ go test -v -tags=integration ./tests
 === RUN   TestFullFlow
 --- PASS: TestFullFlow (0.52s)
 PASS
-ok      text_analyzer/tests     0.854s
+ok      text_analyzer/test     0.854s
 ```
 
 ---
@@ -225,7 +227,7 @@ curl "http://localhost:8081/api/v1/health"
 - **Контейнеризация**: Docker, Docker Compose
 - **Документация**: Swagger (Swag)
 - **Тестирование**: `testing`, `testify`, интеграционные тесты
-- 
+  
 ### Сервис A: Text Receiver (`:8081`)
 Принимает текст, создает задачу со статусом `PENDING`, асинхронно отправляет её в Сервис B и обновляет статус на `DONE`/`FAILED`.
 - `POST /api/v1/text` — создать задачу.
@@ -260,7 +262,7 @@ text_analyzer/
 │   ├── middleware/        # Middleware
 │   ├── receiver/          # Логика Сервиса А
 │   └── analyzer/          # Логика Сервиса Б
-├── tests/
+├── test/
 │   └── integration_test.go # Интеграционные тесты
 ├── docs/                  # Сгенерированная Swagger документация
 ├── docker-compose.yml
